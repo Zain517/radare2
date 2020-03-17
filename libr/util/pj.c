@@ -185,19 +185,23 @@ R_API PJ *pj_b(PJ *j, bool v) {
 	return j;
 }
 
-R_API PJ *pj_s(PJ *j, const char *k) {
+R_API PJ *pj_d(PJ *j, const unsigned char *k, int len) {
 	r_return_val_if_fail (j && k, j);
 	pj_comma (j);
 	pj_raw (j, "\"");
-	char *ek = r_str_escape_utf8_for_json (k, -1);
+	char *ek = r_str_escape_utf8_for_json (k, len);
 	if (ek) {
 		pj_raw (j, ek);
 		free (ek);
 	} else {
-		eprintf ("damn\n");
+		eprintf ("cannot escape string\n");
 	}
 	pj_raw (j, "\"");
 	return j;
+}
+
+R_API PJ *pj_s(PJ *j, const char *k) {
+	return pj_d(j, (const unsigned char *)k, -1);
 }
 
 R_API PJ *pj_j(PJ *j, const char *k) {
