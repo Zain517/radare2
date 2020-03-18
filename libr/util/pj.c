@@ -185,11 +185,11 @@ R_API PJ *pj_b(PJ *j, bool v) {
 	return j;
 }
 
-R_API PJ *pj_d(PJ *j, const unsigned char *k, int len) {
+R_API PJ *pj_s(PJ *j, const char *k) {
 	r_return_val_if_fail (j && k, j);
 	pj_comma (j);
 	pj_raw (j, "\"");
-	char *ek = r_str_escape_utf8_for_json (k, len);
+	char *ek = r_str_escape_utf8_for_json (k, -1);
 	if (ek) {
 		pj_raw (j, ek);
 		free (ek);
@@ -200,8 +200,20 @@ R_API PJ *pj_d(PJ *j, const unsigned char *k, int len) {
 	return j;
 }
 
-R_API PJ *pj_s(PJ *j, const char *k) {
-	return pj_d(j, (const unsigned char *)k, -1);
+R_API PJ *pj_r(PJ *j, const unsigned char *k, size_t len) {
+	size_t i;
+	pj_a (j);
+	for (i = 0; i < len; i++) {
+		pj_i (j, k[i]);
+	}
+	pj_end (j);
+	return j;
+}
+
+R_API PJ *pj_kr(PJ *j, const char *name, const unsigned char *k, size_t len) {
+	pj_k (j, name);
+	pj_r (j, k, len);
+	return j;
 }
 
 R_API PJ *pj_j(PJ *j, const char *k) {
