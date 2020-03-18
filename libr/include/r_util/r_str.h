@@ -32,29 +32,28 @@ static inline void r_str_rmch(char *s, char ch) {
 
 //  -- strf
 typedef struct r_strf_t {
-	size_t idx;
-	size_t x;
-	size_t y;
-	char *buf[0];
+	size_t idx, size;
+	char buf[0];
 } r_strf__;
 
-static inline char *r_strf_(struct r_strf_t *s, const char *fmt, ...) {
-	if (s->idx >= (s->y * s->x)) {
+R_NULLABLE static inline char *r_strf_(r_strf__ *s, const char *fmt, ...) {
+	if (s->idx >= s->size) {
 		s->idx = 0;
 	}
 	r_return_val_if_fail (s && fmt, NULL);
 	va_list ap;
 	va_start (ap, fmt);
-	char *p = (char*) s->buf + (s->idx * s->y);
-	int res = vsnprintf (p, s->y, fmt, ap);
-	r_return_val_if_fail (res != s->y, NULL);
-	s->idx ++;
+	char *p = s->buf + s->idx;
+	size_t left = s->size - s->idx - 1;
+	int res = vsnprintf (p, left, fmt, ap);
+	r_return_val_if_fail (res != left, NULL);
+	s->idx += res + 1;
 	va_end (ap);
 	return p;
 }
 
-#define r_strf_frame(x,y) struct r_strf_t_ { size_t idx; size_t size; char buf[x][y]; } r_strf_var = {0,x, y}
-#define r_strf(x,...) r_strf_((struct r_strf_t*)&r_strf_var, x, __VA_ARGS__)
+#define r_strf_frame(x) struct r_strf_t { size_t idx, size; char buf[x]; } r_strf_var = {0, x, 0}
+#define r_strf(x,...) r_strf_((r_strf__*)&r_strf_var, x, __VA_ARGS__)
 //  -- strf
 
 #define R_STR_ISEMPTY(x) (!(x) || !*(x))
